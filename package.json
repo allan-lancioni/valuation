@@ -1,0 +1,25 @@
+{
+  "name": "invest",
+  "version": "1.0.0",
+  "main": "scrape_investidor10.js",
+  "scripts": {
+    "calculate": "node src/main.js",
+    "scrap": "node src/scrap.js",
+    "test": "jest --verbose"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.8.4",
+    "cheerio": "^1.0.0",
+    "yahoo-finance2": "^2.13.3"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

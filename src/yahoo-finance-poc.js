@@ -1,6 +1,6 @@
 const yahooFinance = require("yahoo-finance2").default;
 
-const symbol = "ITUB3.SA";
+const symbol = "LREN3.SA";
 
 async function main() {
   let result;

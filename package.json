@@ -4,7 +4,10 @@
   "main": "scrape_investidor10.js",
   "scripts": {
     "calculate": "node src/main.js",
-    "scrap": "node src/scrap.js",
+    "vqr": "node src/vqr.js",
+    "scrap": "node src/scrap/scrap.js",
+    "scrap-debug": "node src/scrap/scrap.js --debug",
+    "scrap2": "node src/scrap/scrap_v2.js --debug",
     "test": "jest --verbose"
   },
   "keywords": [],

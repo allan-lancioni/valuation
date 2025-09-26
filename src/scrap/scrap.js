@@ -21,10 +21,12 @@ if (DEBUG_MODE) {
 const HEADERS = { "User-Agent": "Mozilla/5.0" };
 const WEBSITES = {
   INVESTIDOR_10: {
+    name: "Investidor 10",
     url: (ticker) => `https://investidor10.com.br/acoes/${ticker}`,
     outputFile: (ticker) => path.resolve(SCRAP_DIR, `inv10_${ticker}.txt`),
   },
   MAIS_RETORNO: {
+    name: "Mais Retorno",
     url: (ticker) => `https://maisretorno.com/acoes/${ticker}`,
     outputFile: (ticker) => path.resolve(SCRAP_DIR, `maisret_${ticker}.txt`),
   },
@@ -32,9 +34,10 @@ const WEBSITES = {
 
 async function fetchFinData(ticker) {
   try {
-    const $ = cheerio.load(
-      await getWebsiteContent(ticker, WEBSITES.INVESTIDOR_10)
-    );
+    const html = await getWebsiteContent(ticker, WEBSITES.INVESTIDOR_10);
+    if (!html) throw new Error("Failed to fetch HTML content from Investidor 10");
+
+    const $ = cheerio.load(html);
 
     const data = {
       ticker: ticker.toUpperCase(),
@@ -110,9 +113,9 @@ async function fetchFinData(ticker) {
 
 async function fetchVolData(ticker) {
   try {
-    const $ = cheerio.load(
-      await getWebsiteContent(ticker, WEBSITES.MAIS_RETORNO)
-    );
+    const html = await getWebsiteContent(ticker, WEBSITES.MAIS_RETORNO);
+    if (!html) throw new Error("Failed to fetch HTML content from Mais Retorno");
+    const $ = cheerio.load(html);
 
     const data = { ticker: ticker.toUpperCase() };
 
@@ -141,9 +144,14 @@ async function fetchVolData(ticker) {
 
 async function getWebsiteContent(ticker, website) {
   const requestWebsiteContent = async () => {
-    const response = await axios.get(website.url(ticker), { headers: HEADERS });
-    console.log(`📥 ${ticker} - ${response.status} ${response.statusText}`);
-    return response.data;
+    try {
+      const response = await axios.get(website.url(ticker), { headers: HEADERS });
+      console.log(`📥 ${ticker} - ${response.status} ${response.statusText} [${website.name}]`);
+      return response.data;      
+    } catch (error) {
+      console.error(`❌ ${ticker} - ${error.message} [${website.name}]`);
+      return null;
+    }
   };
 
   let websiteContent;
@@ -234,6 +242,7 @@ function mergeAndSaveCompanies(companies) {
 async function main() {
 
   const companiesData = [];
+  const failToFetch = [];
 
   for (let i = 0; i < tickers.length; i++) {
     const ticker = tickers[i];
@@ -244,6 +253,12 @@ async function main() {
       fetchVolData(ticker),
     ]);
 
+    const error = finData.Error || volData.Error;
+    if (error) {
+      failToFetch.push({ ticker, error });
+      continue;
+    }
+
     const data = {
       ticker,
       ...finData,
@@ -252,7 +267,14 @@ async function main() {
 
     const normalizedData = normalizeData(data);
     companiesData.push(normalizedData);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+
+  if (failToFetch.length > 0) {
+    console.error(`❌ ${failToFetch.length} Error(s): Failed to fetch data for the following companies:`);
+    failToFetch.forEach(({ ticker, error }) => {
+      console.error(` - ${ticker}: ${error}`);
+    });
   }
 
   mergeAndSaveCompanies(companiesData);

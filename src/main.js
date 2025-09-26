@@ -171,9 +171,9 @@ const preferredOrder = [
   "totalScore",
 
   // Historical Returns
-  // "return1m",
-  // "return3m",
-  // "return1y",
+  "return1m",
+  "return3m",
+  "return1y",
   "return2y",
   "return5y",
   "return10y",
